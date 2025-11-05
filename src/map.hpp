@@ -38,13 +38,6 @@ template<
            : data(val), color(c), parent(p), left(l), right(r) {}
    };
 
-   // Special nil node that doesn't store actual data
-   struct NilNode {
-       Node *left, *right, *parent;
-       Color color;
-
-       NilNode() : color(BLACK) {}
-   };
 
    Node *root;
    Node *nil; // sentinel node for leaf nodes
@@ -428,19 +421,15 @@ template<
   * TODO two constructors
     */
    map() : map_size(0), comp() {
-       // Create nil node with dummy key and value using placement new
-       nil = static_cast<Node*>(::operator new(sizeof(Node)));
-       new (&nil->data) value_type();
-       nil->color = BLACK;
+       // Create nil node without storing actual data
+       nil = new Node(value_type(Key(), T()), BLACK);
        nil->left = nil->right = nil->parent = nil;
        root = nil;
    }
 
    map(const map &other) : map_size(other.map_size), comp() {
-       // Create nil node with dummy key and value using placement new
-       nil = static_cast<Node*>(::operator new(sizeof(Node)));
-       new (&nil->data) value_type();
-       nil->color = BLACK;
+       // Create nil node without storing actual data
+       nil = new Node(value_type(Key(), T()), BLACK);
        nil->left = nil->right = nil->parent = nil;
        root = copyHelper(other.root, nil);
    }
@@ -451,12 +440,9 @@ template<
    map &operator=(const map &other) {
        if (this != &other) {
            clear();
-           nil->data.~value_type();
-           ::operator delete(nil);
-           // Create nil node with dummy key and value using placement new
-           nil = static_cast<Node*>(::operator new(sizeof(Node)));
-           new (&nil->data) value_type();
-           nil->color = BLACK;
+           delete nil;
+           // Create nil node without storing actual data
+           nil = new Node(value_type(Key(), T()), BLACK);
            nil->left = nil->right = nil->parent = nil;
            root = copyHelper(other.root, nil);
            map_size = other.map_size;
@@ -469,8 +455,7 @@ template<
     */
    ~map() {
        clear();
-       nil->data.~value_type();
-       ::operator delete(nil);
+       delete nil;
    }
 
    /**

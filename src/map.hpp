@@ -38,7 +38,6 @@ template<
            : data(val), color(c), parent(p), left(l), right(r) {}
    };
 
-
    Node *root;
    Node *nil; // sentinel node for leaf nodes
    size_t map_size;
@@ -421,15 +420,19 @@ template<
   * TODO two constructors
     */
    map() : map_size(0), comp() {
-       // Create nil node without storing actual data
-       nil = new Node(value_type(Key(), T()), BLACK);
+       // Create nil node using placement new to avoid default constructor
+       nil = static_cast<Node*>(::operator new(sizeof(Node)));
+       // Don't construct data for nil node
+       nil->color = BLACK;
        nil->left = nil->right = nil->parent = nil;
        root = nil;
    }
 
    map(const map &other) : map_size(other.map_size), comp() {
-       // Create nil node without storing actual data
-       nil = new Node(value_type(Key(), T()), BLACK);
+       // Create nil node using placement new to avoid default constructor
+       nil = static_cast<Node*>(::operator new(sizeof(Node)));
+       // Don't construct data for nil node
+       nil->color = BLACK;
        nil->left = nil->right = nil->parent = nil;
        root = copyHelper(other.root, nil);
    }
@@ -440,9 +443,11 @@ template<
    map &operator=(const map &other) {
        if (this != &other) {
            clear();
-           delete nil;
-           // Create nil node without storing actual data
-           nil = new Node(value_type(Key(), T()), BLACK);
+           ::operator delete(nil);
+           // Create nil node using placement new to avoid default constructor
+           nil = static_cast<Node*>(::operator new(sizeof(Node)));
+           // Don't construct data for nil node
+           nil->color = BLACK;
            nil->left = nil->right = nil->parent = nil;
            root = copyHelper(other.root, nil);
            map_size = other.map_size;
@@ -455,7 +460,7 @@ template<
     */
    ~map() {
        clear();
-       delete nil;
+       ::operator delete(nil);
    }
 
    /**
